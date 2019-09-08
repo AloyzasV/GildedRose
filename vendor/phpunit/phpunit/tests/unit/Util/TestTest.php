@@ -11,12 +11,14 @@ namespace PHPUnit\Util;
 
 use PharIo\Version\VersionConstraint;
 use PHPUnit\Framework\CodeCoverageException;
-use PHPUnit\Framework\Exception;
 use PHPUnit\Framework\InvalidDataProviderException;
 use PHPUnit\Framework\TestCase;
 use PHPUnit\Framework\Warning;
 
-class TestTest extends TestCase
+/**
+ * @small
+ */
+final class TestTest extends TestCase
 {
     /**
      * @var string
@@ -1063,11 +1065,15 @@ class TestTest extends TestCase
             $expected = [
                 TEST_FILES_PATH . 'NamespaceCoveredClass.php' => $lines,
             ];
+        } elseif ($test === 'CoverageMethodNothingCoversMethod') {
+            $expected = false;
         } elseif ($test === 'CoverageCoversOverridesCoversNothingTest') {
             $expected = [TEST_FILES_PATH . 'CoveredClass.php' => $lines];
         } elseif ($test === 'CoverageNoneTest') {
             $expected = [];
-        } elseif ($test === 'CoverageNothingTest') {
+        } elseif ($test === 'CoverageClassNothingTest') {
+            $expected = false;
+        } elseif ($test === 'CoverageMethodNothingTest') {
             $expected = false;
         } elseif ($test === 'CoverageFunctionTest') {
             $expected = [
@@ -1290,12 +1296,20 @@ class TestTest extends TestCase
                 \range(31, 35),
             ],
             [
-                'CoverageNothingTest',
+                'CoverageClassNothingTest',
+                false,
+            ],
+            [
+                'CoverageMethodNothingTest',
                 false,
             ],
             [
                 'CoverageCoversOverridesCoversNothingTest',
                 \range(29, 33),
+            ],
+            [
+                'CoverageMethodNothingCoversMethod',
+                false,
             ],
         ];
     }
@@ -1321,6 +1335,31 @@ class TestTest extends TestCase
                 'testOne'
             )
         );
+    }
+
+    /**
+     * @dataProvider canSkipCoverageProvider
+     */
+    public function testCanSkipCoverage($testCase, $expectedCanSkip): void
+    {
+        require_once TEST_FILES_PATH . $testCase . '.php';
+
+        $test             = new $testCase('testSomething');
+        $coverageRequired = Test::requiresCodeCoverageDataCollection($test);
+        $canSkipCoverage  = !$coverageRequired;
+
+        $this->assertEquals($expectedCanSkip, $canSkipCoverage);
+    }
+
+    public function canSkipCoverageProvider(): array
+    {
+        return [
+            ['CoverageClassTest', false],
+            ['CoverageClassWithoutAnnotationsTest', false],
+            ['CoverageCoversOverridesCoversNothingTest', false],
+            ['CoverageClassNothingTest', true],
+            ['CoverageMethodNothingTest', true],
+        ];
     }
 
     private function getRequirementsTestClassFile(): string

@@ -12,7 +12,10 @@ use PHPUnit\Framework\ExpectationFailedException;
 use PHPUnit\Framework\MockObject\MockObject;
 use PHPUnit\Framework\TestCase;
 
-class MockObjectTest extends TestCase
+/**
+ * @small
+ */
+final class MockObjectTest extends TestCase
 {
     public function testMockedMethodIsNeverCalled(): void
     {
@@ -1117,11 +1120,18 @@ class MockObjectTest extends TestCase
         $this->assertInstanceOf(stdClass::class, $stub->methodWithObjectReturnTypeDeclaration());
     }
 
-    public function testGetObjectForTrait(): void
+    public function testTraitCanBeDoubled(): void
     {
         $object = $this->getObjectForTrait(ExampleTrait::class);
 
         $this->assertSame('ohHai', $object->ohHai());
+    }
+
+    public function testTraitWithConstructorCanBeDoubled(): void
+    {
+        $object = $this->getObjectForTrait(TraitWithConstructor::class, ['value']);
+
+        $this->assertSame('value', $object->value());
     }
 
     private function resetMockObjects(): void

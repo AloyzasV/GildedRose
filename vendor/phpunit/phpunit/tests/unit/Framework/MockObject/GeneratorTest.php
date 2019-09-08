@@ -17,15 +17,16 @@ use PHPUnit\Framework\TestCase;
  *
  * @uses \PHPUnit\Framework\MockObject\InvocationMocker
  * @uses \PHPUnit\Framework\MockObject\Builder\InvocationMocker
- * @uses \PHPUnit\Framework\MockObject\Invocation\ObjectInvocation
- * @uses \PHPUnit\Framework\MockObject\Invocation\StaticInvocation
+ * @uses \PHPUnit\Framework\MockObject\Invocation
  * @uses \PHPUnit\Framework\MockObject\Matcher
  * @uses \PHPUnit\Framework\MockObject\Matcher\InvokedRecorder
  * @uses \PHPUnit\Framework\MockObject\Matcher\MethodName
  * @uses \PHPUnit\Framework\MockObject\Stub\ReturnStub
  * @uses \PHPUnit\Framework\MockObject\Matcher\InvokedCount
+ *
+ * @small
  */
-class GeneratorTest extends TestCase
+final class GeneratorTest extends TestCase
 {
     /**
      * @var Generator
@@ -109,29 +110,11 @@ class GeneratorTest extends TestCase
         $this->assertEquals(1, $mock->returnAnything());
     }
 
-    /**
-     * @dataProvider getMockForAbstractClassExpectsInvalidArgumentExceptionDataprovider
-     */
-    public function testGetMockForAbstractClassExpectingInvalidArgumentException($className, $mockClassName): void
-    {
-        $this->expectException(PHPUnit\Framework\Exception::class);
-
-        $this->generator->getMockForAbstractClass($className, [], $mockClassName);
-    }
-
     public function testGetMockForAbstractClassAbstractClassDoesNotExist(): void
     {
         $this->expectException(\PHPUnit\Framework\MockObject\RuntimeException::class);
 
         $this->generator->getMockForAbstractClass('Tux');
-    }
-
-    public function getMockForAbstractClassExpectsInvalidArgumentExceptionDataprovider(): array
-    {
-        return [
-            'className not a string'     => [[], ''],
-            'mockClassName not a string' => [Countable::class, new stdClass],
-        ];
     }
 
     public function testGetMockForTraitWithNonExistentMethodsAndNonAbstractMethods(): void
@@ -202,13 +185,28 @@ class GeneratorTest extends TestCase
         $this->assertNull($mock->someMethod());
     }
 
-    public function testMockingOfThrowable(): void
+    public function testMockingOfExceptionWithThrowable(): void
     {
         $stub = $this->generator->getMock(ExceptionWithThrowable::class);
 
         $this->assertInstanceOf(ExceptionWithThrowable::class, $stub);
         $this->assertInstanceOf(Exception::class, $stub);
         $this->assertInstanceOf(MockObject::class, $stub);
+    }
+
+    public function testMockingOfThrowable(): void
+    {
+        $stub = $this->generator->getMock(Throwable::class);
+
+        $this->assertInstanceOf(Throwable::class, $stub);
+        $this->assertInstanceOf(Exception::class, $stub);
+        $this->assertInstanceOf(MockObject::class, $stub);
+    }
+
+    public function testMockingOfThrowableConstructorArguments(): void
+    {
+        $mock = $this->generator->getMock(Throwable::class, null, ['It works']);
+        $this->assertSame('It works', $mock->getMessage());
     }
 
     public function testVariadicArgumentsArePassedToOriginalMethod(): void

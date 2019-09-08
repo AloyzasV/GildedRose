@@ -4,21 +4,35 @@ namespace App;
 
 class GildedRose
 {
-    protected static $productClasses = [
-        'Aged Brie' => AgedBrie::class,
-        'Backstage passes to a TAFKAL80ETC concert' => Backstage::class,
-        'Sulfuras, Hand of Ragnaros' => Sulfurus::class,
-        'Conjured' => Conjured::class
+    public $items = [];
+
+    public static $itemClasses = [
+        'Aged Brie' => Items\AgedBrie::class,
+        'Backstage passes to a TAFKAL80ETC concert' => Items\Backstage::class,
+        'Sulfuras, Hand of Ragnaros' => Items\Sulfurus::class,
+        'Conjured Mana Cake' => Items\Conjured::class
     ];
 
-    public function type($items)
+    public function __construct($items)
     {
-        foreach ($items as $item) {
-            if (array_key_exists($item->name, self::$productClasses)) {
-                return new self::$productClasses[$item->name]($items);
-            }
+        $this->items = $items;
+    }
+
+    public function updateQuality()
+    {
+        foreach ($this->items as $item) {
+            $item->update();
         }
-        return new static($items);
+    }
+
+    public function getItemClass($itemName)
+    {
+        if (array_key_exists($itemName, self::$itemClasses)) {
+            $class = self::$itemClasses[$itemName];
+        } else {
+            $class = Items\StandardItem::class;
+        }
+        return $class;
     }
 }
 
